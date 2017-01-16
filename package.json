@@ -1,0 +1,23 @@
+{
+  "name": "neighborhood-map-project",
+  "version": "1.0.0",
+  "description": "Student project for Udacity Front-end Nanodegree course",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yalozhkin/neighborhood-map-project.git"
+  },
+  "author": "Yaroslav LOzhkin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yalozhkin/neighborhood-map-project/issues"
+  },
+  "homepage": "https://github.com/yalozhkin/neighborhood-map-project#readme",
+  "devDependencies": {
+    "bower": "^1.8.0",
+    "gulp": "^3.9.1"
+  }
+}
