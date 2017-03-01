@@ -1,52 +1,108 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Neighborhood map</title>
-    <meta name="viewport" content="initial-scale=1.0">
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="/styles/main.css">
-    <style>
-      #map {
-        height: 100%;
-      }
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="sidebar">
-      <h1 class="sidebar__title">App name</h1>
-      <div class="sidebar__toolbar">
-        <form>
-          <input type="text" name="" value="Filter list...">
-        </form>
-      </div>
-      <div class="list">
-        <ul>
-          <li class="list__item">
-            <img class="list__item__thumb" src="" alt="Location title">
-            <h3 class="list__item__title">Location title</h3>
-            <p class="list__item__info">Location description</p>
-          </li>
-        </ul>
-      </div>
+
+<head>
+  <title>Neighborhood map</title>
+  <meta name="viewport" content="initial-scale=1.0">
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="/styles/main.css">
+  <style>
+    #map {
+      height: 100%;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h1 class="sidebar__title">App name</h1>
+    <div class="sidebar__toolbar">
+      <form>
+        <input type="text" name="" value="Filter list...">
+      </form>
     </div>
-    <div id="map"></div>
-    <script>
-      var map;
-      function initMap() {
-        map = new google.maps.Map(document.getElementById('map'), {
-          center: {lat: 0, lng: 0},
-          zoom: 5
+    <div class="list">
+      <ul>
+        <li class="list__item">
+          <img class="list__item__thumb" src="" alt="Location title">
+          <h3 class="list__item__title">Location title</h3>
+          <p class="list__item__info">Location description</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div id="map"></div>
+  <script>
+
+    // Define global variables
+    var GOOGLE_API_KEY = 'AIzaSyBIRCqEqa2xArP3H7oKIPsm7zPimNh5FDE'; // TODO: Use the key properly
+    var map, marker, center, infowindow;
+
+    // TODO: Use API for information about locations
+    var locations = [{
+        title: 'Izhevsk',
+        description: 'Short text about the location',
+        location: {
+          lat: 56.85,
+          lng: 53.20
+        }
+      },
+      {
+        title: 'Sarapul',
+        description: 'Short text about the location',
+        location: {
+          lat: 56.28,
+          lng: 53.48
+        }
+      },
+      {
+        title: 'Mozhga',
+        description: 'Short text about the location',
+        location: {
+          lat: 56.27,
+          lng: 52.13
+        }
+      }
+    ];
+
+    function initMap() {
+
+      // Initialize map
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: locations[0].location,
+        zoom: 8
+      });
+
+      // Show markers
+      for (var i = 0; i < locations.length; i++) {
+        marker = new google.maps.Marker({
+          position: locations[i].location,
+          title: locations[i].title,
+          map: map
         });
       }
-    </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBIRCqEqa2xArP3H7oKIPsm7zPimNh5FDE&callback=initMap"
-    async defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.1/knockout-min.js" integrity="sha256-PX9zWVaICUCeklczWaS9DLBb9uGN7pCkCT0Kyz1elRo=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
-  </body>
+
+      // TODO: Make infowindow working again
+      marker.addListener('click', function() {
+        infowindow = new google.maps.InfoWindow({
+          content: locations.description
+        });
+        infowindow.open(map, marker);
+      });
+    }
+  </script>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBIRCqEqa2xArP3H7oKIPsm7zPimNh5FDE&callback=initMap" async defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.1/knockout-min.js" integrity="sha256-PX9zWVaICUCeklczWaS9DLBb9uGN7pCkCT0Kyz1elRo=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+
+</body>
+
 </html>
