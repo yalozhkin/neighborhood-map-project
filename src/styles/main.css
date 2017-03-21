@@ -1,9 +1,33 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+}
+
 .sidebar {
   background: whitesmoke;
-  width: 20%;
-  height: 100%;
+  display: inline-block;
+  height: 100vh;
+  padding: 32px;
   position: fixed;
   top: 0;
-  z-index: 1;
-  padding: 32px;
+  width: 20vw;
+}
+
+.map {
+  display: inline-block;
+  height: 100vh;
+  left: 20vw;
+  position: fixed;
+  top:0;
+  width: 80vw;
+}
+
+.pano {
+  height: 200px;
+  width:300px;
 }

@@ -6,24 +6,16 @@
   <meta name="viewport" content="initial-scale=1.0">
   <meta charset="utf-8">
   <link rel="stylesheet" href="/styles/main.css">
-  <style>
-    #map {
-      height: 100%;
-    }
-
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-  </style>
 </head>
 
 <body>
   <div class="sidebar">
     <h1 class="sidebar__title">App name</h1>
     <div class="sidebar__toolbar">
+      <form>
+        <button id="show-listings" type="button" name="button">Show</button>
+        <button id="hide-listings" type="button" name="button">Hide</button>
+      </form>
       <form>
         <input type="text" name="" value="Filter list...">
       </form>
@@ -38,85 +30,208 @@
       </ul>
     </div>
   </div>
-  <div id="map"></div>
+  <div id="map" class="map"></div>
   <script>
     // Define global variables
     var GOOGLE_API_KEY = 'AIzaSyBIRCqEqa2xArP3H7oKIPsm7zPimNh5FDE'; // TODO: Use the key properly
-    var map, marker, center, infowindow;
+    var map;
     var markers = [];
-
-    // TODO: Use API for information about locations
-    var locations = [{
-        title: 'Izhevsk',
-        description: 'Short text about Izhevks',
-        location: {
-          lat: 56.85,
-          lng: 53.20
-        }
-      },
-      {
-        title: 'Sarapul',
-        description: 'Short text about Sarapul',
-        location: {
-          lat: 56.28,
-          lng: 53.48
-        }
-      },
-      {
-        title: 'Mozhga',
-        description: 'Short text about Mozhga',
-        location: {
-          lat: 56.27,
-          lng: 52.13
-        }
-      }
-    ];
 
     function initMap() {
 
+      // Style map
+      var styles = [{
+        featureType: 'water',
+        stylers: [{
+          color: '#dadafa'
+        }]
+      }, {
+        featureType: 'administrative',
+        elementType: 'labels.text.fill',
+        stylers: [{
+          color: '#636396'
+        }]
+      }, {
+        featureType: 'road.highway',
+        elementType: 'geometry.stroke',
+        stylers: [{
+          color: '#fa6666'
+        }, {
+          lightness: -40
+        }]
+      }, {
+        featureType: 'transit.station',
+        stylers: [{
+          color: '#6f6f6f'
+        }, {
+          weight: 9
+        }]
+      }, ];
+
+      // Custom icons
+      function makeMarkerIcon(markerColor) {
+        var markerImage = new google.maps.MarkerImage(
+          'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|' + markerColor +
+          '|40|_|%E2%80%A2',
+          new google.maps.Size(21, 34),
+          new google.maps.Point(0, 0),
+          new google.maps.Point(10, 34),
+          new google.maps.Size(21, 34));
+        return markerImage;
+      };
+
+      var icon = {
+        default: makeMarkerIcon('993333'),
+        highlighted: makeMarkerIcon('ff6666')
+      };
+
       // Initialize map
       map = new google.maps.Map(document.getElementById('map'), {
-        center: locations[0].location,
-        zoom: 8
+        center: {
+          lat: 56.00,
+          lng: 53.00
+        },
+        zoom: 8,
+        styles: styles,
+        mapTypeControl: false
       });
+
+      // TODO: Use API for information about locations
+      var locations = [{
+          title: 'Izhevsk',
+          description: 'Short text about Izhevsk',
+          location: {
+            lat: 56.85,
+            lng: 53.20
+          }
+        },
+        {
+          title: 'Sarapul',
+          description: 'Short text about Sarapul',
+          location: {
+            lat: 56.28,
+            lng: 53.48
+          }
+        },
+        {
+          title: 'Mozhga',
+          description: 'Short text about Mozhga',
+          location: {
+            lat: 56.27,
+            lng: 52.13
+          }
+        },
+        {
+          title: 'Library',
+          description: 'New York Public Library - Stephen A. Schwarzman Building',
+          location: {
+            lat: 40.7531823,
+            lng: -73.9822534
+          }
+        }
+      ];
+
+      // Define infowindow
+      var infowindow = new google.maps.InfoWindow();
+
+      // Define marker outside of the loop
+      var marker;
 
       // Show markers on the map
       for (var i = 0; i < locations.length; i++) {
         marker = new google.maps.Marker({
+          id: i,
+          icon: icon.default,
+          map: map,
           position: locations[i].location,
           title: locations[i].title,
           description: locations[i].description,
-          map: map
+          animation: google.maps.Animation.DROP
         });
+
+        // Add each marker data to the markers array
         markers.push(marker);
+
+        // Show infowindow on marker click
         marker.addListener('click', function() {
           popuplateInfoWindow(this, infowindow);
         });
+
+        // Apply hover effect on marker
+        marker.addListener('mouseover', function() {
+          this.setIcon(icon.highlighted);
+        });
+        marker.addListener('mouseout', function() {
+          this.setIcon(icon.default);
+        });
+
+        // Bind UI controls to show/hide functions
+        document.getElementById('show-listings').addEventListener('click', showListings);
+        document.getElementById('hide-listings').addEventListener('click', hideListings);
       }
 
-      infowindow = new google.maps.InfoWindow({
-        content: locations.description
-      });
-
-      // Popuplate infowindow with marker's data
+      // Populate infowindow with marker's data
       function popuplateInfoWindow(marker, infowindow) {
+
         // Check if infowindow is not opened
         if (infowindow.marker != marker) {
+          infowindow.setContent('');
           infowindow.marker = marker;
-          infowindow.setContent(
-            '<h1>' + marker.title + '</h1>' +
-            '<p>' + marker.description + '</p>');
-          infowindow.open(map, marker);
+
+          // Close infowindow on closeclick click
           infowindow.addListener('closeclick', function() {
-            infowindow.setMarker(null);
+            infowindow.marker = null;
           });
+
+          // Implement street view
+          var streetViewService = new google.maps.StreetViewService();
+          var radius = 50;
+
+          function getStreetView(data, status) {
+            if (status == google.maps.StreetViewStatus.OK) {
+              var nearStreetViewLocation = data.location.latLng;
+              var heading = google.maps.geometry.spherical.computeHeading(
+                nearStreetViewLocation, marker.position);
+              infowindow.setContent('<h1>' + marker.title + '</h1><div id="pano" class="pano"></div>');
+              var panoramaOptions = {
+                position: nearStreetViewLocation,
+                pov: {
+                  heading: heading,
+                  pitch: 30
+                }
+              };
+              var panorama = new google.maps.StreetViewPanorama(
+                document.getElementById('pano'), panoramaOptions);
+            } else {
+              infowindow.setContent('<h1>' + marker.title + '</h1>' +
+                '<div>No Street View Found</div>');
+            }
+          }
+
+          streetViewService.getPanoramaByLocation(marker.position, radius, getStreetView);
+          infowindow.open(map, marker);
+
         }
       }
 
-      // Show infowindow on marker click
-      marker.addListener('click', function() {
-        infowindow.open(map, marker);
-      });
+      // Show marker info
+      function showListings() {
+        var bounds = new google.maps.LatLngBounds();
+        // Adjust bounds to make all markers visible
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].setMap(map);
+          bounds.extend(markers[i].position);
+        }
+        map.fitBounds(bounds);
+      }
+
+      // Hide all markers info
+      function hideListings() {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].setMap(null);
+        }
+      }
+
     }
   </script>
 
