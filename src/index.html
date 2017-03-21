@@ -88,45 +88,37 @@
       // Initialize map
       map = new google.maps.Map(document.getElementById('map'), {
         center: {
-          lat: 56.00,
-          lng: 53.00
+          lat: 56.8500388,
+          lng: 53.1970425
         },
-        zoom: 8,
+        zoom: 15,
         styles: styles,
         mapTypeControl: false
       });
 
       // TODO: Use API for information about locations
       var locations = [{
-          title: 'Izhevsk',
-          description: 'Short text about Izhevsk',
+          title: 'Монумент Дружбы народов',
+          description: 'Памятник',
           location: {
-            lat: 56.85,
-            lng: 53.20
+            lat: 56.8521832,
+            lng: 53.1968803
           }
         },
         {
-          title: 'Sarapul',
-          description: 'Short text about Sarapul',
+          title: 'Обелиск борцам павшим за власть Советов',
+          description: 'Памятник',
           location: {
-            lat: 56.28,
-            lng: 53.48
+            lat: 56.8497252,
+            lng: 53.2046113
           }
         },
         {
-          title: 'Mozhga',
-          description: 'Short text about Mozhga',
+          title: 'Копия памятника Ижику',
+          description: 'Исторический памятник',
           location: {
-            lat: 56.27,
-            lng: 52.13
-          }
-        },
-        {
-          title: 'Library',
-          description: 'New York Public Library - Stephen A. Schwarzman Building',
-          location: {
-            lat: 40.7531823,
-            lng: -73.9822534
+            lat: 56.8524104,
+            lng: 53.2036489
           }
         }
       ];
@@ -197,7 +189,7 @@
                 position: nearStreetViewLocation,
                 pov: {
                   heading: heading,
-                  pitch: 30
+                  pitch: 0
                 }
               };
               var panorama = new google.maps.StreetViewPanorama(
