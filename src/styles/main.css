@@ -8,6 +8,20 @@ html, body {
   width: 100vw;
 }
 
+.map {
+  display: inline-block;
+  height: 90vh;
+  left: 25vw;
+  position: fixed;
+  top:5vh;
+  width: 70vw;
+}
+
+.pano {
+  height: 200px;
+  width:300px;
+}
+
 .sidebar {
   background: whitesmoke;
   display: inline-block;
@@ -16,18 +30,4 @@ html, body {
   position: fixed;
   top: 0;
   width: 20vw;
-}
-
-.map {
-  display: inline-block;
-  height: 100vh;
-  left: 20vw;
-  position: fixed;
-  top:0;
-  width: 80vw;
-}
-
-.pano {
-  height: 200px;
-  width:300px;
 }

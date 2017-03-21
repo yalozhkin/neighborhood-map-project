@@ -15,6 +15,7 @@
       <form>
         <button id="show-listings" type="button" name="button">Show</button>
         <button id="hide-listings" type="button" name="button">Hide</button>
+        <button id="toggle-drawing" type="button" name="button">Drawing</button>
       </form>
       <form>
         <input type="text" name="" value="Filter list...">
@@ -36,6 +37,7 @@
     var GOOGLE_API_KEY = 'AIzaSyBIRCqEqa2xArP3H7oKIPsm7zPimNh5FDE'; // TODO: Use the key properly
     var map;
     var markers = [];
+    var polygon = null;
 
     function initMap() {
 
@@ -123,8 +125,32 @@
         }
       ];
 
-      // Define infowindow
-      var infowindow = new google.maps.InfoWindow();
+      // Draw an area on the map
+      var drawingManager = new google.maps.drawing.DrawingManager({
+        drawingMode: google.maps.drawing.OverlayType.POLYGON,
+        drawingControl: true,
+        drawingControlOptions: {
+          position: google.maps.ControlPosition.TOP_LEFT,
+          drawingModes: [
+            google.maps.drawing.OverlayType.POLYGON
+          ]
+        }
+      });
+
+      function toggleDrawing(drawingManager) {
+        if (drawingManager.map) {
+          drawingManager.setMap(null);
+          // In case the user drew anything, get rid of the polygon
+          if (polygon !== null) {
+            polygon.setMap(null);
+          }
+        } else {
+          drawingManager.setMap(map);
+        }
+      }
+
+      // Define infoWindow
+      var infoWindow = new google.maps.InfoWindow();
 
       // Define marker outside of the loop
       var marker;
@@ -144,9 +170,9 @@
         // Add each marker data to the markers array
         markers.push(marker);
 
-        // Show infowindow on marker click
+        // Show infoWindow on marker click
         marker.addListener('click', function() {
-          popuplateInfoWindow(this, infowindow);
+          popuplateInfoWindow(this, infoWindow);
         });
 
         // Apply hover effect on marker
@@ -160,19 +186,44 @@
         // Bind UI controls to show/hide functions
         document.getElementById('show-listings').addEventListener('click', showListings);
         document.getElementById('hide-listings').addEventListener('click', hideListings);
+        document.getElementById('toggle-drawing').addEventListener('click', function() {
+          toggleDrawing(drawingManager);
+        });
+
+        // Add an event listener so that the polygon is captured,  call the
+        // searchWithinPolygon function. This will show the markers in the polygon,
+        // and hide any outside of it.
+        drawingManager.addListener('overlaycomplete', function(event) {
+          // First, check if there is an existing polygon.
+          // If there is, get rid of it and remove the markers
+          if (polygon) {
+            polygon.setMap(null);
+            hideListings(markers);
+          }
+          // Switching the drawing mode to the HAND (i.e., no longer drawing).
+          drawingManager.setDrawingMode(null);
+          // Creating a new editable polygon from the overlay.
+          polygon = event.overlay;
+          polygon.setEditable(true);
+          // Searching within the polygon.
+          searchWithinPolygon();
+          // Make sure the search is re-done if the poly is changed.
+          polygon.getPath().addListener('set_at', searchWithinPolygon);
+          polygon.getPath().addListener('insert_at', searchWithinPolygon);
+        });
       }
 
-      // Populate infowindow with marker's data
-      function popuplateInfoWindow(marker, infowindow) {
+      // Populate infoWindow with marker's data
+      function popuplateInfoWindow(marker, infoWindow) {
 
-        // Check if infowindow is not opened
-        if (infowindow.marker != marker) {
-          infowindow.setContent('');
-          infowindow.marker = marker;
+        // Check if infoWindow is not opened
+        if (infoWindow.marker != marker) {
+          infoWindow.setContent('');
+          infoWindow.marker = marker;
 
-          // Close infowindow on closeclick click
-          infowindow.addListener('closeclick', function() {
-            infowindow.marker = null;
+          // Close infoWindow on closeclick click
+          infoWindow.addListener('closeclick', function() {
+            infoWindow.marker = null;
           });
 
           // Implement street view
@@ -184,7 +235,7 @@
               var nearStreetViewLocation = data.location.latLng;
               var heading = google.maps.geometry.spherical.computeHeading(
                 nearStreetViewLocation, marker.position);
-              infowindow.setContent('<h1>' + marker.title + '</h1><div id="pano" class="pano"></div>');
+              infoWindow.setContent('<h1>' + marker.title + '</h1><div id="pano" class="pano"></div>');
               var panoramaOptions = {
                 position: nearStreetViewLocation,
                 pov: {
@@ -195,41 +246,49 @@
               var panorama = new google.maps.StreetViewPanorama(
                 document.getElementById('pano'), panoramaOptions);
             } else {
-              infowindow.setContent('<h1>' + marker.title + '</h1>' +
+              infoWindow.setContent('<h1>' + marker.title + '</h1>' +
                 '<div>No Street View Found</div>');
             }
           }
-
           streetViewService.getPanoramaByLocation(marker.position, radius, getStreetView);
-          infowindow.open(map, marker);
-
+          infoWindow.open(map, marker);
         }
       }
+    }
 
-      // Show marker info
-      function showListings() {
-        var bounds = new google.maps.LatLngBounds();
-        // Adjust bounds to make all markers visible
-        for (var i = 0; i < markers.length; i++) {
+    // Show marker info
+    function showListings() {
+      var bounds = new google.maps.LatLngBounds();
+      // Adjust bounds to make all markers visible
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].setMap(map);
+        bounds.extend(markers[i].position);
+      }
+      map.fitBounds(bounds);
+    }
+
+    // Hide all markers info
+    function hideListings() {
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].setMap(null);
+      }
+    }
+
+    // Search within polygon
+    function searchWithinPolygon() {
+      for (var i = 0; i < markers.length; i++) {
+        if (google.maps.geometry.poly.containsLocation(markers[i].position, polygon)) {
           markers[i].setMap(map);
-          bounds.extend(markers[i].position);
-        }
-        map.fitBounds(bounds);
-      }
-
-      // Hide all markers info
-      function hideListings() {
-        for (var i = 0; i < markers.length; i++) {
+        } else {
           markers[i].setMap(null);
         }
       }
-
     }
   </script>
 
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBIRCqEqa2xArP3H7oKIPsm7zPimNh5FDE&callback=initMap" async defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.1/knockout-min.js" integrity="sha256-PX9zWVaICUCeklczWaS9DLBb9uGN7pCkCT0Kyz1elRo=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+  <script src="//maps.googleapis.com/maps/api/js?key=AIzaSyBIRCqEqa2xArP3H7oKIPsm7zPimNh5FDE&callback=initMap&libraries=drawing" async defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.4.1/knockout-min.js" integrity="sha256-PX9zWVaICUCeklczWaS9DLBb9uGN7pCkCT0Kyz1elRo=" crossorigin="anonymous"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
 
 </body>
 
